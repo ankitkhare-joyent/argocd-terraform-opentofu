@@ -43,6 +43,9 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          # ExternalSecret/SecretStore are CRDs; don't fail the dry-run if
+          # External Secrets isn't installed yet, just retry.
+          - SkipDryRunOnMissingResource=true
         # Labels Argo CD puts on the namespace it creates. Pod Security
         # Admission "restricted" rejects pods that run as root, mount host
         # paths, etc.

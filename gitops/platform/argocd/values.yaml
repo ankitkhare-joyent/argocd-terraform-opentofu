@@ -21,6 +21,22 @@ configs:
     admin.enabled: true
     # Show the status of every child resource, which makes the UI more useful.
     statusbadge.enabled: false
+    # Since Argo CD 1.8 an Application's health is NOT rolled up into its
+    # parent by default, so sync waves in an app-of-apps don't wait for child
+    # apps to become healthy. This documented health check restores that:
+    # the root app now waits for OpenBao and External Secrets (wave 0) to be
+    # Healthy before creating the demo apps (wave 2).
+    resource.customizations.health.argoproj.io_Application: |
+      hs = {}
+      hs.status = "Progressing"
+      hs.message = ""
+      if obj.status ~= nil and obj.status.health ~= nil then
+        hs.status = obj.status.health.status
+        if obj.status.health.message ~= nil then
+          hs.message = obj.status.health.message
+        end
+      end
+      return hs
 
   rbac:
     # Least privilege by default: anyone who logs in can look, not touch.
