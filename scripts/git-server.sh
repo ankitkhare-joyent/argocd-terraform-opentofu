@@ -66,8 +66,8 @@ if [[ ! -d .git ]]; then
   git add -A
   git commit -q -m "Initial platform repo: OpenTofu stacks and GitOps manifests"
 fi
-git remote get-url origin >/dev/null 2>&1 || git remote add origin "$GITEA_URL/$USER_NAME/platform.git"
+git remote get-url gitea >/dev/null 2>&1 || git remote add gitea "$GITEA_URL/$USER_NAME/platform.git"
 # Token goes in a repo-local header, not in the remote URL.
 git config http."$GITEA_URL/".extraHeader "Authorization: token $(cat .secrets/gitea-push-token)"
-git push -q -u origin main
+git push -q gitea main
 echo "==> Pushed to $GITEA_URL/$USER_NAME/platform"

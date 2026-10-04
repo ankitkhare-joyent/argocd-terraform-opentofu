@@ -11,6 +11,6 @@ source "$(dirname "$0")/env.sh"
 docker rm -f gitea >/dev/null 2>&1 || true
 docker volume rm lab-gitea-data lab-gitea-config >/dev/null 2>&1 || true
 rm -rf "$LAB_ROOT/.state" "$LAB_ROOT/.kube" "$LAB_ROOT/.secrets"
-git -C "$LAB_ROOT" remote remove origin 2>/dev/null || true
+git -C "$LAB_ROOT" remote remove gitea 2>/dev/null || true
 git -C "$LAB_ROOT" config --unset-all http."$GITEA_URL/".extraHeader 2>/dev/null || true
 echo "Lab removed."

@@ -46,8 +46,9 @@ make help       # all targets
 
 Argo CD in this lab watches a local Gitea server, so the manifests use
 `http://gitea:3000/platform/platform.git` (in `gitops/root/` and the bootstrap
-variables). `make up` pushes this folder there, so the lab works as is, even
-though you're reading it on GitHub.
+variables). `make up` pushes this folder there through a second Git remote named
+`gitea` (`origin` stays GitHub), and `make push` sends your commits to Gitea
+for Argo CD to pick up. Push to GitHub with `git push origin` as usual.
 
 To point Argo CD at this GitHub repo instead, replace that URL with the
 GitHub HTTPS URL in `gitops/root/**/*.yaml` and in `git_repo_url` in

@@ -52,7 +52,7 @@ bao-password: ## Print the OpenBao tofu-admin password
 	@$(RUN) bash -c 'source scripts/env.sh && kubectl -n openbao get secret openbao-bootstrap-admin -o jsonpath="{.data.INITIAL_ADMIN_PASSWORD}" | base64 -d; echo'
 
 push: ## Push your commits to Gitea; Argo CD syncs them within a minute
-	git push origin HEAD
+	git push gitea HEAD:main
 
 validate: ## What CI runs: fmt, validate, render and schema-check manifests
 	$(RUN) scripts/validate.sh
