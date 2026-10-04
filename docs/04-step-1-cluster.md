@@ -48,7 +48,7 @@ source scripts/env.sh
 kubectl get nodes -o wide
 docker ps --filter name=platform-control-plane   # the "node" is a container
 
-head -c 200 .state/00-cluster.tfstate; echo       # ciphertext, not JSON
+jq 'keys' .state/00-cluster.tfstate               # only encrypted_data + metadata
 cd infra/stacks/00-cluster && tofu show | head    # tofu decrypts it for you
 ```
 

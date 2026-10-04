@@ -26,12 +26,14 @@ an unseal key. Read the `config:` block in
 ```bash
 source scripts/env.sh
 curl -s $BAO_ADDR/v1/sys/health | jq     # initialized: true, sealed: false
-kubectl -n openbao logs openbao-0 | grep -i -m5 "initializ"
-kubectl -n openbao logs openbao-0 | grep '"type":"request"' | tail -1 | jq .request.path
+# The audit log (JSON lines on stdout) shows self-init's requests, made with
+# a root token that was revoked straight afterwards:
+kubectl -n openbao logs openbao-0 \
+  | grep -E '"path":"(sys/policies|auth/userpass/users|transit/keys)' \
+  | jq -rc '[.type, .request.path, .auth.display_name] | @tsv'
 ```
 
-That last line is the audit log. Secret values in it are HMAC'd, never
-plain.
+Secret values in the audit log are HMAC'd, never plain.
 
 ## Part B: configure OpenBao with OpenTofu
 

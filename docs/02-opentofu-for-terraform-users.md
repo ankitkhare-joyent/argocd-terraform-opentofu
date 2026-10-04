@@ -54,7 +54,9 @@ Used in: [`infra/stacks/00-cluster/versions.tf`](../infra/stacks/00-cluster/vers
 (`openbao` transit key, so OpenBao guards the state of the stack that
 configures OpenBao).
 
-Try it: `head -c 300 .state/00-cluster.tfstate` shows ciphertext, not JSON.
+Try it: `jq 'keys' .state/00-cluster.tfstate` shows only `encrypted_data`, `meta`,
+`lineage`, `serial` and `encryption_version`. Your resources are inside
+`encrypted_data`, unreadable without the key.
 
 ### 2. Early variable evaluation (1.8+)
 

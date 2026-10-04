@@ -50,6 +50,8 @@ Then watch it arrive:
 
 ```bash
 kubectl -n demo-dev get externalsecret demo-db -w   # refreshes within 1m
+# or don't wait for the 1m refresh:
+kubectl -n demo-dev annotate externalsecret demo-db force-sync=$(date +%s) --overwrite
 kubectl -n demo-dev port-forward svc/demo 9898:80 &
 curl -s localhost:9898/configs | jq                 # new value in the file, no restart
 ```
