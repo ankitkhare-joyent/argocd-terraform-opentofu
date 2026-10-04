@@ -26,7 +26,7 @@ echo "==> [5/6] OpenBao configuration (OpenTofu stack 20, state encrypted by Ope
 "$S/tofu.sh" 20-openbao-config apply -auto-approve -input=false
 
 echo "==> [6/6] Waiting for the demo apps to become Healthy"
-for app in demo-dev demo-prod; do
+for app in demo-dev demo-prod root; do
   until kubectl -n argocd get application "$app" >/dev/null 2>&1; do sleep 5; done
   kubectl -n argocd wait application "$app" --for=jsonpath='{.status.health.status}'=Healthy --timeout=600s
 done
