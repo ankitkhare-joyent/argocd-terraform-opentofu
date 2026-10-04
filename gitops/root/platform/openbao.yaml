@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openbao
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://openbao.github.io/openbao-helm
+      chart: openbao
+      targetRevision: 0.30.2 # OpenBao v2.7.1
+      helm:
+        releaseName: openbao
+        valueFiles:
+          - $values/gitops/platform/openbao/values.yaml
+    - repoURL: http://gitea:3000/platform/platform.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openbao # created by OpenTofu with the seal Secret already inside
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

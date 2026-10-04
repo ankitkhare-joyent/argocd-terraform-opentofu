@@ -1,0 +1,10 @@
+# Local-only material. Never commit these.
+.secrets/
+.state/
+.kube/
+**/.terraform/
+**/.terraform-validate/
+*.tfplan
+*.tfstate
+*.tfstate.*
+.DS_Store

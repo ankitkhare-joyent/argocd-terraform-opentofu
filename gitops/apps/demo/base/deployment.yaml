@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demo
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.15.0
+          command:
+            - ./podinfo
+            - --port=9898
+            - --level=info
+            # podinfo exposes files under --config-path at GET /configs.
+            # We mount the synced Secret there so you can SEE rotation happen.
+            # A real app would read the file and never serve it back.
+            - --config-path=/etc/demo-db
+          env:
+            - name: PODINFO_UI_MESSAGE
+              value: hello from demo
+            # The common pattern: secret as env var. Env vars are read once at
+            # start, so a rotated value needs a pod restart (see docs/08).
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: username
+          ports:
+            - name: http
+              containerPort: 9898
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 64Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: db
+              mountPath: /etc/demo-db
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        # Mounted Secrets are updated in place by the kubelet when ESO
+        # refreshes them, no restart needed.
+        - name: db
+          secret:
+            secretName: demo-db
+        - name: tmp
+          emptyDir: {}

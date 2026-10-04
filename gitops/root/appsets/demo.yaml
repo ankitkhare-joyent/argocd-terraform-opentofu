@@ -1,0 +1,55 @@
+# One ApplicationSet stamps out one Application per environment.
+# Adding an environment = adding a folder under gitops/apps/demo/overlays/.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: demo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: http://gitea:3000/platform/platform.git
+        revision: main
+        directories:
+          - path: gitops/apps/demo/overlays/*
+  syncPolicy:
+    # If the ApplicationSet itself is deleted, leave the running workloads
+    # alone instead of cascading the delete into every environment.
+    preserveResourcesOnDeletion: true
+  template:
+    metadata:
+      name: "demo-{{ .path.basename }}"
+      labels:
+        app.kubernetes.io/part-of: demo
+        env: "{{ .path.basename }}"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: apps
+      source:
+        repoURL: http://gitea:3000/platform/platform.git
+        targetRevision: main
+        path: "{{ .path.path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "demo-{{ .path.basename }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        # Labels Argo CD puts on the namespace it creates. Pod Security
+        # Admission "restricted" rejects pods that run as root, mount host
+        # paths, etc.
+        managedNamespaceMetadata:
+          labels:
+            pod-security.kubernetes.io/enforce: restricted
+            pod-security.kubernetes.io/enforce-version: latest
+        retry:
+          limit: 10
+          backoff: { duration: 15s, factor: 2, maxDuration: 3m }

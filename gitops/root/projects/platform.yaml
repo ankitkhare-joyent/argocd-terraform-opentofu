@@ -1,0 +1,30 @@
+# AppProject = a security boundary inside Argo CD.
+# It limits WHERE manifests may come from, WHERE they may go, and WHAT kinds
+# they may create. The platform project is trusted with cluster-wide objects
+# (CRDs, ClusterRoles, webhooks) because operators need them.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Shared platform services owned by the platform team.
+  sourceRepos:
+    - http://gitea:3000/platform/platform.git
+    - https://argoproj.github.io/argo-helm
+    - https://openbao.github.io/openbao-helm
+    - https://charts.external-secrets.io
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: openbao
+    - server: https://kubernetes.default.svc
+      namespace: external-secrets
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

@@ -1,0 +1,40 @@
+# The apps project is for product teams. Much tighter than "platform":
+#   - only our Git repo, no arbitrary Helm repos
+#   - only namespaces named demo-*
+#   - no cluster-scoped objects except the Namespace itself
+#   - plain Kubernetes Secrets are blocked, so secrets can only arrive via
+#     ExternalSecret from OpenBao, never committed to Git
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: apps
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Application workloads.
+  sourceRepos:
+    - http://gitea:3000/platform/platform.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: demo-*
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceBlacklist:
+    - group: ""
+      kind: Secret
+    - group: ""
+      kind: ResourceQuota
+    - group: ""
+      kind: LimitRange
+  # A project-scoped role a CI pipeline could use (with a project JWT) to
+  # trigger syncs of its own apps and nothing else.
+  roles:
+    - name: deployer
+      description: CI may view and sync apps in this project.
+      policies:
+        - p, proj:apps:deployer, applications, get, apps/*, allow
+        - p, proj:apps:deployer, applications, sync, apps/*, allow

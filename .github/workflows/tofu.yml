@@ -1,0 +1,89 @@
+# Production pattern for running OpenTofu from GitHub Actions against OpenBao.
+#
+# Reference only: this lab's OpenBao runs on your laptop, which GitHub's
+# runners cannot reach. In a real setup OpenBao has an internal address
+# reachable from self-hosted runners (or a private network for hosted ones).
+#
+# Key ideas:
+#   - No stored secrets. The job gets a GitHub OIDC token, trades it for a
+#     15-minute OpenBao token (auth method "jwt-github", role "tofu-ci",
+#     defined in infra/stacks/20-openbao-config/main.tf).
+#   - Plan on pull requests, apply only on main, behind an Environment that
+#     requires a human approval.
+#   - State and plan files are encrypted by OpenTofu itself with OpenBao's
+#     transit key, so the uploaded plan artifact is ciphertext.
+name: tofu
+
+on:
+  pull_request:
+    paths: ["infra/stacks/20-openbao-config/**", "infra/modules/openbao-app-tenant/**"]
+  push:
+    branches: [main]
+    paths: ["infra/stacks/20-openbao-config/**", "infra/modules/openbao-app-tenant/**"]
+
+permissions:
+  contents: read
+  id-token: write # lets the job request a GitHub OIDC token
+  pull-requests: write
+
+env:
+  BAO_ADDR: https://openbao.internal.example.com
+  VAULT_ADDR: https://openbao.internal.example.com
+  STACK: infra/stacks/20-openbao-config
+
+concurrency:
+  group: tofu-20-openbao-config # never two applies at once against the same state
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+
+      - name: Log in to OpenBao with GitHub OIDC
+        run: |
+          JWT=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://github.com/${GITHUB_REPOSITORY_OWNER}" | jq -r .value)
+          TOKEN=$(curl -sSf -X POST "$BAO_ADDR/v1/auth/jwt-github/login" \
+            -d "{\"role\":\"tofu-ci-plan\",\"jwt\":\"$JWT\"}" | jq -r .auth.client_token)
+          echo "::add-mask::$TOKEN"
+          echo "BAO_TOKEN=$TOKEN"   >> "$GITHUB_ENV"
+          echo "VAULT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - run: tofu -chdir=$STACK init -input=false
+      - run: tofu -chdir=$STACK plan -input=false -out=tfplan -no-color | tee plan.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.STACK }}/tfplan # encrypted by OpenTofu
+      - name: Comment plan on the PR
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const plan = require('fs').readFileSync('plan.txt', 'utf8').slice(-60000);
+            await github.rest.issues.createComment({
+              ...context.repo, issue_number: context.issue.number,
+              body: "### tofu plan: 20-openbao-config\n```\n" + plan + "\n```",
+            });
+
+  apply:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production # configure "required reviewers" on this Environment
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+      - name: Log in to OpenBao with GitHub OIDC
+        run: |
+          JWT=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://github.com/${GITHUB_REPOSITORY_OWNER}" | jq -r .value)
+          TOKEN=$(curl -sSf -X POST "$BAO_ADDR/v1/auth/jwt-github/login" \
+            -d "{\"role\":\"tofu-ci\",\"jwt\":\"$JWT\"}" | jq -r .auth.client_token)
+          echo "::add-mask::$TOKEN"
+          echo "BAO_TOKEN=$TOKEN"   >> "$GITHUB_ENV"
+          echo "VAULT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+      - run: tofu -chdir=$STACK init -input=false
+      - run: tofu -chdir=$STACK apply -input=false -auto-approve

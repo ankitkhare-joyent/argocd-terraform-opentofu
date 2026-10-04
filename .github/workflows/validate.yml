@@ -1,0 +1,20 @@
+# Runs on every pull request. Needs no credentials at all: it only checks that
+# the code is well-formed and the manifests render and match their schemas.
+# Same checks as `make validate` on your laptop.
+name: validate
+
+on:
+  pull_request:
+    paths: ["infra/**", "gitops/**", "mise.toml", ".github/workflows/validate.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Installs the exact tool versions pinned in mise.toml.
+      - uses: jdx/mise-action@v3
+      - run: scripts/validate.sh

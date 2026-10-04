@@ -1,0 +1,11 @@
+# Pinned CLI versions for this lab. Run `mise install` once in this folder.
+# Pinning tool versions is the same idea as a .terraform.lock.hcl for providers:
+# everyone (and CI) runs the exact same binaries.
+[tools]
+opentofu = "1.13.1"
+kubectl = "1.36"
+helm = "3"
+kind = "0.33.0"
+argocd = "3.5.3"
+"github:openbao/openbao" = "2.7.1"
+kubeconform = "latest"

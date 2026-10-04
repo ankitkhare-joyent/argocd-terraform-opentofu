@@ -1,0 +1,68 @@
+# Argo CD Helm values. Read by BOTH:
+#   - infra/stacks/10-bootstrap (first install, via OpenTofu's helm provider)
+#   - root/platform/argocd.yaml (Argo CD managing its own upgrades afterwards)
+# Change Argo CD by editing this file and pushing; never by `helm upgrade`.
+
+global:
+  domain: localhost:48080
+
+configs:
+  params:
+    # TLS would normally terminate at an Ingress/load balancer in front of
+    # argocd-server. Locally we serve plain HTTP on a NodePort.
+    server.insecure: true
+
+  cm:
+    # Poll Git every 60s. In production you add a Git webhook so syncs are
+    # near-instant and keep polling only as a fallback.
+    timeout.reconciliation: 60s
+    # Local admin account is fine for a lab. In production: disable it
+    # (admin.enabled: "false") and log in through SSO (OIDC via Dex or your IdP).
+    admin.enabled: true
+    # Show the status of every child resource, which makes the UI more useful.
+    statusbadge.enabled: false
+
+  rbac:
+    # Least privilege by default: anyone who logs in can look, not touch.
+    policy.default: role:readonly
+    policy.csv: |
+      # Example SSO group mapping you'd use in production:
+      # g, my-org:platform-team, role:admin
+
+# Components we don't need locally. Dex is the built-in SSO broker and
+# notifications sends Slack/email alerts; both are worth enabling in production.
+dex:
+  enabled: false
+notifications:
+  enabled: false
+
+server:
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+controller:
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 768Mi }
+
+repoServer:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 512Mi }
+
+applicationSet:
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits: { memory: 256Mi }
+
+redis:
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits: { memory: 128Mi }
+
+# Production: turn on HA (redis-ha, 2+ replicas of server and repo-server,
+# controller sharding for many clusters). See docs/09-production-checklist.md.

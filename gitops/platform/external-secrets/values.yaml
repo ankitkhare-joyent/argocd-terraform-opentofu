@@ -1,0 +1,22 @@
+# External Secrets Operator (ESO) Helm values.
+# ESO watches ExternalSecret objects and copies values from OpenBao into
+# ordinary Kubernetes Secrets, refreshing them on a schedule.
+
+installCRDs: true
+
+resources:
+  requests: { cpu: 25m, memory: 64Mi }
+  limits: { memory: 256Mi }
+
+webhook:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+    limits: { memory: 128Mi }
+
+certController:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+    limits: { memory: 128Mi }
+
+# Production: 2 replicas with leader election, plus serviceMonitor.enabled=true
+# so Prometheus scrapes sync-error metrics.

@@ -1,0 +1,34 @@
+# The prod environment. Only what differs from base lives here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+labels:
+  - pairs:
+      env: prod
+    includeSelectors: false
+# Promotion = changing this tag in a pull request. dev moves first; prod
+# follows once dev looks healthy.
+images:
+  - name: ghcr.io/stefanprodan/podinfo
+    newTag: "6.14.1"
+replicas:
+  - name: demo
+    count: 2
+patches:
+  # Point this environment at its own OpenBao role and secret path.
+  - target: { kind: SecretStore, name: openbao }
+    patch: |-
+      - op: replace
+        path: /spec/provider/vault/auth/kubernetes/role
+        value: demo-prod
+  - target: { kind: ExternalSecret, name: demo-db }
+    patch: |-
+      - op: replace
+        path: /spec/dataFrom/0/extract/key
+        value: apps/demo/prod
+  - target: { kind: Deployment, name: demo }
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/value
+        value: hello from demo-prod
