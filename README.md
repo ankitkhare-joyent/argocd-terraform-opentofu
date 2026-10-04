@@ -41,3 +41,16 @@ make help       # all targets
 | External Secrets Operator | 2.11.0 |
 | Kubernetes (kind node) | 1.36.4 |
 | Providers | helm 3.3, kubernetes 3.3, vault 5.12, random 3.9, tehcyx/kind 0.11 |
+
+## About the Git URL in the manifests
+
+Argo CD in this lab watches a local Gitea server, so the manifests use
+`http://gitea:3000/platform/platform.git` (in `gitops/root/` and the bootstrap
+variables). `make up` pushes this folder there, so the lab works as is, even
+though you're reading it on GitHub.
+
+To point Argo CD at this GitHub repo instead, replace that URL with the
+GitHub HTTPS URL in `gitops/root/**/*.yaml` and in `git_repo_url` in
+`infra/stacks/10-bootstrap/variables.tf`, and pass a GitHub fine-grained
+token with read-only *Contents* access as `TF_VAR_git_token` (plus your
+GitHub username as `git_username`).

@@ -8,3 +8,9 @@
 *.tfstate
 *.tfstate.*
 .DS_Store
+.env
+.env.*
+*.pem
+*.key
+*-key.json
+crash.log

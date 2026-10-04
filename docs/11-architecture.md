@@ -2,6 +2,62 @@
 
 ![Lab architecture](architecture.svg)
 
+The same picture as a Mermaid diagram, which GitHub renders natively:
+
+```mermaid
+flowchart LR
+  you["You (laptop)<br/>git push · make up"]
+  subgraph tofu["OpenTofu 1.13"]
+    s00["00-cluster<br/>kind cluster"]
+    s10["10-bootstrap<br/>secret zero + Argo CD + root app"]
+    s20["20-openbao-config<br/>mounts, auth, policies, tenants"]
+  end
+  gitea[("Gitea repo<br/>platform/platform")]
+
+  subgraph k8s["kind cluster 'platform'"]
+    subgraph argo["ns argocd: Argo CD 3.5"]
+      repo["repo-server"]
+      ctrl["application-controller"]
+      root["root app of apps<br/>AppProjects · platform apps · ApplicationSet"]
+    end
+    subgraph bao["ns openbao: OpenBao 2.7"]
+      ob["openbao-0<br/>Raft · static auto-unseal · audit · self-init"]
+      kv["KV v2 secret/apps/demo/*"]
+      auth["auth: kubernetes · userpass · jwt-github"]
+      transit["transit key tofu-state"]
+      zero["secret zero<br/>openbao-seal · bootstrap-admin"]
+    end
+    eso["ns external-secrets: ESO 2.11"]
+    subgraph dev["ns demo-dev (PSA restricted)"]
+      dstore["SecretStore (role demo-dev)"] --> des["ExternalSecret demo-db"] --> dsec["Secret demo-db"] --> dpod["Deployment demo"]
+    end
+    subgraph prod["ns demo-prod (PSA restricted)"]
+      pstore["SecretStore (role demo-prod)"] --> pes["ExternalSecret demo-db"] --> psec["Secret demo-db"] --> ppod["Deployment demo"]
+    end
+  end
+
+  you -->|push| gitea
+  you -->|make up| tofu
+  s00 -->|"1 create"| k8s
+  s10 -->|"2 install"| argo
+  s10 -->|"2 write-only"| zero
+  repo -->|"3 pull (read-only token)"| gitea
+  ctrl -->|"4 sync waves"| bao
+  ctrl -->|"4"| eso
+  ctrl -->|"4"| dev
+  ctrl -->|"4"| prod
+  zero -->|"5 auto-unseal + self-init"| ob
+  s20 -->|"6 configure (state encrypted via transit)"| ob
+  eso -->|"7 SA token login, read"| auth
+  eso -->|"8 write Secret"| dsec
+  eso -->|"8 write Secret"| psec
+
+  classDef tofuC fill:#f5f3ff,stroke:#7c3aed
+  classDef baoC fill:#fff7ed,stroke:#ea580c
+  class s00,s10,s20 tofuC
+  class ob,kv,auth,transit,zero baoC
+```
+
 ## Reading the numbers
 
 The numbers follow the order things happen when you run `make up`.
