@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 960" width="1280" height="960" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12">
+  <defs>
+    <marker id="aP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+    <marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="aO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/></marker>
+    <marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    <style>
+      .box { fill: #ffffff; stroke: #94a3b8; stroke-width: 1; }
+      .t { fill: #0f172a; }
+      .b { font-weight: 600; }
+      .s { fill: #475569; font-size: 11px; }
+      .ns { font-weight: 600; font-size: 12px; fill: #334155; }
+      .num { font-weight: 700; font-size: 11px; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="960" fill="#f8fafc"/>
+  <text x="20" y="34" font-size="20" class="t b">Argo CD + OpenTofu + OpenBao: lab architecture</text>
+  <text x="20" y="54" class="s">Numbers follow the order things happen in `make up`. Everything inside the dashed box runs in one kind cluster on your laptop.</text>
+
+  <!-- ===== Left column: laptop ===== -->
+  <rect x="20" y="75" width="250" height="70" rx="8" class="box"/>
+  <text x="34" y="98" class="t b">You (laptop)</text>
+  <text x="34" y="116" class="s">edit · git commit · make push</text>
+  <text x="34" y="132" class="s">make up / stop / start / down</text>
+
+  <rect x="20" y="195" width="250" height="250" rx="8" fill="#f5f3ff" stroke="#7c3aed"/>
+  <text x="34" y="218" class="t b">OpenTofu 1.13 (infra/stacks)</text>
+  <rect x="34" y="230" width="222" height="52" rx="6" class="box"/>
+  <text x="44" y="250" class="t b">00-cluster</text>
+  <text x="44" y="268" class="s">kind cluster · pbkdf2-encrypted state</text>
+  <rect x="34" y="292" width="222" height="68" rx="6" class="box"/>
+  <text x="44" y="312" class="t b">10-bootstrap</text>
+  <text x="44" y="330" class="s">secret zero (ephemeral + data_wo)</text>
+  <text x="44" y="346" class="s">Argo CD Helm release + root app</text>
+  <rect x="34" y="370" width="222" height="62" rx="6" class="box"/>
+  <text x="44" y="390" class="t b">20-openbao-config</text>
+  <text x="44" y="408" class="s">mounts, auth, policies, tenants</text>
+  <text x="44" y="424" class="s">state encrypted by OpenBao transit</text>
+
+  <rect x="20" y="480" width="250" height="96" rx="8" fill="#ffffff" stroke="#64748b" stroke-dasharray="5 4"/>
+  <text x="34" y="502" class="t b">GitHub Actions (reference only)</text>
+  <text x="34" y="520" class="s">validate.yml: fmt, render, kubeconform</text>
+  <text x="34" y="536" class="s">tofu.yml: GitHub OIDC → OpenBao jwt</text>
+  <text x="34" y="552" class="s">plan on PR (read-only role)</text>
+  <text x="34" y="568" class="s">apply on main (approval required)</text>
+
+  <!-- Legend -->
+  <rect x="20" y="610" width="250" height="132" rx="8" class="box"/>
+  <text x="34" y="632" class="t b">Legend</text>
+  <line x1="34" y1="652" x2="84" y2="652" stroke="#7c3aed" stroke-width="2" marker-end="url(#aP)"/>
+  <text x="94" y="656" class="s">OpenTofu creates / configures</text>
+  <line x1="34" y1="676" x2="84" y2="676" stroke="#2563eb" stroke-width="2" marker-end="url(#aB)"/>
+  <text x="94" y="680" class="s">Argo CD pulls Git and syncs</text>
+  <line x1="34" y1="700" x2="84" y2="700" stroke="#ea580c" stroke-width="2" marker-end="url(#aO)"/>
+  <text x="94" y="704" class="s">Secret flow</text>
+  <line x1="34" y1="724" x2="84" y2="724" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <text x="94" y="728" class="s">Inside one namespace</text>
+
+  <!-- Localhost ports -->
+  <rect x="20" y="770" width="250" height="90" rx="8" class="box"/>
+  <text x="34" y="792" class="t b">On localhost</text>
+  <text x="34" y="810" class="s">Argo CD UI     http://localhost:48080</text>
+  <text x="34" y="826" class="s">OpenBao UI     http://localhost:48200</text>
+  <text x="34" y="842" class="s">Gitea          http://localhost:43000</text>
+
+  <!-- ===== Gitea ===== -->
+  <rect x="320" y="75" width="380" height="70" rx="8" fill="#ecfdf5" stroke="#059669"/>
+  <text x="334" y="98" class="t b">Gitea: platform/platform (private repo, stands in for GitHub)</text>
+  <text x="334" y="116" class="s">gitops/root · gitops/platform · gitops/apps · infra/ · docs/</text>
+  <text x="334" y="132" class="s">Docker container on the kind network: http://gitea:3000</text>
+
+  <!-- ===== Cluster ===== -->
+  <rect x="300" y="185" width="960" height="760" rx="12" fill="none" stroke="#334155" stroke-dasharray="8 5" stroke-width="1.5"/>
+  <text x="1246" y="937" text-anchor="end" class="t b">kind cluster "platform" · Kubernetes 1.36</text>
+
+  <!-- argocd ns -->
+  <rect x="320" y="215" width="440" height="270" rx="10" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="746" y="235" text-anchor="end" class="ns">namespace argocd · Argo CD 3.5</text>
+  <rect x="340" y="250" width="190" height="48" rx="6" class="box"/>
+  <text x="352" y="270" class="t b">repo-server</text>
+  <text x="352" y="287" class="s">helm template / kustomize</text>
+  <rect x="550" y="250" width="190" height="48" rx="6" class="box"/>
+  <text x="562" y="270" class="t b">application-controller</text>
+  <text x="562" y="287" class="s">diff · sync · health · self-heal</text>
+  <rect x="340" y="308" width="190" height="48" rx="6" class="box"/>
+  <text x="352" y="328" class="t b">server (UI, API, RBAC)</text>
+  <text x="352" y="345" class="s">NodePort 30080</text>
+  <rect x="550" y="308" width="190" height="48" rx="6" class="box"/>
+  <text x="562" y="328" class="t b">applicationset-controller</text>
+  <text x="562" y="345" class="s">git directory generator</text>
+  <rect x="340" y="366" width="400" height="108" rx="6" class="box"/>
+  <text x="352" y="385" class="t b">root (app of apps, project "bootstrap")</text>
+  <text x="352" y="403" class="s">wave -2  AppProjects: platform (trusted) · apps (demo-* only, no Secret kind)</text>
+  <text x="352" y="419" class="s">wave -1  argocd (Argo CD manages its own chart + values)</text>
+  <text x="352" y="435" class="s">wave  0  openbao · external-secrets (Helm chart + $values from Git)</text>
+  <text x="352" y="451" class="s">wave  2  ApplicationSet demo → demo-dev, demo-prod</text>
+  <text x="352" y="467" class="s">Repo secret: read-only Gitea token</text>
+
+  <!-- openbao ns -->
+  <rect x="790" y="215" width="450" height="300" rx="10" fill="#fff7ed" stroke="#ea580c"/>
+  <text x="804" y="235" class="ns">namespace openbao · OpenBao 2.7</text>
+  <rect x="810" y="250" width="410" height="118" rx="6" class="box"/>
+  <text x="822" y="270" class="t b">openbao-0 (StatefulSet, HA Raft, 1 replica; 3 in prod)</text>
+  <text x="822" y="290" class="s">seal "static": auto-unseal from BAO_STATIC_UNSEAL_KEY (prod: awskms)</text>
+  <text x="822" y="307" class="s">audit "file" → stdout (declared in config)</text>
+  <text x="822" y="324" class="s">self-init on first boot: platform-admin policy, tofu-admin</text>
+  <text x="822" y="341" class="s">userpass login, transit key tofu-state; root token revoked</text>
+  <text x="822" y="358" class="s">NodePort 30820</text>
+  <rect x="810" y="380" width="130" height="78" rx="6" class="box"/>
+  <text x="820" y="400" class="t b">KV v2  secret/</text>
+  <text x="820" y="418" class="s">apps/demo/dev</text>
+  <text x="820" y="434" class="s">apps/demo/prod</text>
+  <rect x="950" y="380" width="140" height="78" rx="6" class="box"/>
+  <text x="960" y="400" class="t b">Auth methods</text>
+  <text x="960" y="418" class="s">kubernetes (pods)</text>
+  <text x="960" y="434" class="s">userpass (tofu-admin)</text>
+  <text x="960" y="450" class="s">jwt-github (CI)</text>
+  <rect x="1100" y="380" width="120" height="78" rx="6" class="box"/>
+  <text x="1110" y="400" class="t b">Transit</text>
+  <text x="1110" y="418" class="s">tofu-state key</text>
+  <text x="1110" y="434" class="s">(encrypts stack</text>
+  <text x="1110" y="450" class="s">20's state)</text>
+  <rect x="1030" y="466" width="190" height="44" rx="6" fill="#fef3c7" stroke="#d97706"/>
+  <text x="1040" y="483" class="s">Secret zero (stack 10, step 2)</text>
+  <text x="1040" y="499" class="s">openbao-seal · bootstrap-admin</text>
+
+  <!-- external-secrets ns -->
+  <rect x="320" y="545" width="440" height="80" rx="10" fill="#fdf4ff" stroke="#a21caf"/>
+  <text x="334" y="565" class="ns">namespace external-secrets · ESO 2.11</text>
+  <rect x="340" y="575" width="400" height="40" rx="6" class="box"/>
+  <text x="352" y="599" class="t b">external-secrets controller</text>
+  <text x="530" y="599" class="s">watches SecretStore + ExternalSecret</text>
+
+  <!-- demo-dev ns -->
+  <rect x="320" y="690" width="440" height="228" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+  <text x="334" y="710" class="ns">namespace demo-dev · PSA restricted</text>
+  <rect x="335" y="725" width="120" height="48" rx="6" class="box"/>
+  <text x="345" y="745" class="t b">ServiceAccount</text>
+  <text x="345" y="762" class="s">openbao-reader</text>
+  <rect x="470" y="725" width="135" height="48" rx="6" class="box"/>
+  <text x="480" y="745" class="t b">SecretStore</text>
+  <text x="480" y="762" class="s">role demo-dev</text>
+  <rect x="620" y="725" width="125" height="48" rx="6" class="box"/>
+  <text x="630" y="745" class="t b">ExternalSecret</text>
+  <text x="630" y="762" class="s">demo-db (wave -1)</text>
+  <rect x="620" y="805" width="125" height="48" rx="6" class="box"/>
+  <text x="630" y="825" class="t b">Secret</text>
+  <text x="630" y="842" class="s">demo-db</text>
+  <rect x="470" y="805" width="135" height="48" rx="6" class="box"/>
+  <text x="480" y="825" class="t b">Deployment demo</text>
+  <text x="480" y="842" class="s">env + /etc/demo-db</text>
+  <line x1="455" y1="749" x2="468" y2="749" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <line x1="605" y1="749" x2="618" y2="749" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <line x1="682" y1="773" x2="682" y2="803" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <line x1="620" y1="829" x2="607" y2="829" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <text x="335" y="880" class="s">podinfo 6.15.0 · 1 replica · reads secret/apps/demo/dev only</text>
+  <text x="335" y="898" class="s">non-root, read-only rootfs, no capabilities</text>
+
+  <!-- demo-prod ns -->
+  <rect x="790" y="690" width="450" height="228" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+  <text x="804" y="710" class="ns">namespace demo-prod · PSA restricted</text>
+  <rect x="805" y="725" width="120" height="48" rx="6" class="box"/>
+  <text x="815" y="745" class="t b">ServiceAccount</text>
+  <text x="815" y="762" class="s">openbao-reader</text>
+  <rect x="940" y="725" width="135" height="48" rx="6" class="box"/>
+  <text x="950" y="745" class="t b">SecretStore</text>
+  <text x="950" y="762" class="s">role demo-prod</text>
+  <rect x="1090" y="725" width="125" height="48" rx="6" class="box"/>
+  <text x="1100" y="745" class="t b">ExternalSecret</text>
+  <text x="1100" y="762" class="s">demo-db (wave -1)</text>
+  <rect x="1090" y="805" width="125" height="48" rx="6" class="box"/>
+  <text x="1100" y="825" class="t b">Secret</text>
+  <text x="1100" y="842" class="s">demo-db</text>
+  <rect x="940" y="805" width="135" height="48" rx="6" class="box"/>
+  <text x="950" y="825" class="t b">Deployment demo</text>
+  <text x="950" y="842" class="s">env + /etc/demo-db</text>
+  <line x1="925" y1="749" x2="938" y2="749" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <line x1="1075" y1="749" x2="1088" y2="749" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <line x1="1152" y1="773" x2="1152" y2="803" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <line x1="1090" y1="829" x2="1077" y2="829" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aG)"/>
+  <text x="805" y="880" class="s">podinfo 6.14.1 · 2 replicas · reads secret/apps/demo/prod only</text>
+  <text x="805" y="898" class="s">promotion = change newTag in overlays/prod, push</text>
+
+  <!-- ===== Flows ===== -->
+  <!-- you -> gitea -->
+  <line x1="270" y1="110" x2="318" y2="110" stroke="#059669" stroke-width="2" marker-end="url(#aB)"/>
+  <text x="276" y="102" class="s">push</text>
+  <!-- you -> tofu -->
+  <line x1="145" y1="145" x2="145" y2="193" stroke="#7c3aed" stroke-width="2" marker-end="url(#aP)"/>
+  <text x="152" y="174" class="s">make up</text>
+
+  <!-- 1 tofu 00 -> cluster -->
+  <line x1="256" y1="256" x2="298" y2="256" stroke="#7c3aed" stroke-width="2" marker-end="url(#aP)"/>
+  <circle cx="282" cy="244" r="8" fill="#7c3aed"/><text x="282" y="248" text-anchor="middle" class="num">1</text>
+
+  <!-- 2 tofu 10 -> argocd ns -->
+  <path d="M256,326 L318,326" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#aP)"/>
+  <circle cx="282" cy="314" r="8" fill="#7c3aed"/><text x="282" y="318" text-anchor="middle" class="num">2</text>
+
+  <!-- 3 argocd pulls git -->
+  <line x1="435" y1="248" x2="435" y2="147" stroke="#2563eb" stroke-width="2" marker-end="url(#aB)"/>
+  <circle cx="447" cy="200" r="8" fill="#2563eb"/><text x="447" y="204" text-anchor="middle" class="num">3</text>
+  <text x="460" y="204" class="s">pull Git every 60s (read-only token)</text>
+
+  <!-- 4 sync to openbao, eso, demo -->
+  <line x1="740" y1="274" x2="788" y2="274" stroke="#2563eb" stroke-width="2" marker-end="url(#aB)"/>
+  <circle cx="764" cy="262" r="8" fill="#2563eb"/><text x="764" y="266" text-anchor="middle" class="num">4</text>
+  <line x1="540" y1="474" x2="540" y2="543" stroke="#2563eb" stroke-width="2" marker-end="url(#aB)"/>
+  <circle cx="552" cy="500" r="8" fill="#2563eb"/><text x="552" y="504" text-anchor="middle" class="num">4</text>
+  <path d="M330,474 L310,474 L310,800 L318,800" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#aB)"/>
+  <path d="M310,660 L1015,660 L1015,688" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#aB)"/>
+  <circle cx="312" cy="640" r="8" fill="#2563eb"/><text x="312" y="644" text-anchor="middle" class="num">4</text>
+
+  <!-- 5 secret zero -> openbao-0 (auto-unseal + self-init) -->
+  <path d="M1220,488 L1232,488 L1232,309 L1222,309" fill="none" stroke="#ea580c" stroke-width="2" marker-end="url(#aO)"/>
+  <circle cx="1232" cy="440" r="8" fill="#ea580c"/><text x="1232" y="444" text-anchor="middle" class="num">5</text>
+
+  <!-- 6 tofu 20 -> openbao (top corridor) -->
+  <path d="M256,400 L285,400 L285,163 L1015,163 L1015,248" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#aP)"/>
+  <circle cx="1015" cy="200" r="8" fill="#7c3aed"/><text x="1015" y="204" text-anchor="middle" class="num">6</text>
+  <text x="1025" y="157" class="s" fill="#7c3aed">configure OpenBao (stack 20)</text>
+
+  <!-- 7 ESO login + read -->
+  <path d="M740,595 L980,595 L980,460" fill="none" stroke="#ea580c" stroke-width="2" marker-end="url(#aO)"/>
+  <circle cx="880" cy="595" r="8" fill="#ea580c"/><text x="880" y="599" text-anchor="middle" class="num">7</text>
+  <text x="992" y="589" class="s" fill="#c2410c">SA token → kubernetes auth (TokenReview)</text>
+  <text x="992" y="611" class="s" fill="#c2410c">→ 15-min token → read apps/demo/&lt;env&gt;</text>
+
+  <!-- 8 ESO writes Secret -->
+  <path d="M700,615 L700,640 L770,640 L770,829 L747,829" fill="none" stroke="#ea580c" stroke-width="2" marker-end="url(#aO)"/>
+  <path d="M770,640 L1250,640 L1250,829 L1217,829" fill="none" stroke="#ea580c" stroke-width="2" marker-end="url(#aO)"/>
+  <circle cx="770" cy="700" r="8" fill="#ea580c"/><text x="770" y="704" text-anchor="middle" class="num">8</text>
+</svg>
