@@ -20,6 +20,11 @@ if [[ ! -s "$LAB_ROOT/.secrets/state-passphrase" ]]; then
 fi
 export TF_VAR_state_passphrase="$(cat "$LAB_ROOT/.secrets/state-passphrase")"
 
+# Read-only Gitea token for Argo CD, needed by stack 10 (written by git-server.sh).
+if [[ -s "$LAB_ROOT/.secrets/gitea-argocd-token" ]]; then
+  export TF_VAR_git_token="$(cat "$LAB_ROOT/.secrets/gitea-argocd-token")"
+fi
+
 # Endpoints exposed on localhost by kind / Docker.
 export ARGOCD_URL="http://localhost:48080"
 export GITEA_URL="http://localhost:43000"

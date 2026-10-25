@@ -24,6 +24,10 @@ Then read **[docs/00-start-here.md](docs/00-start-here.md)** and follow the
 pages in order. The architecture diagram is the last page,
 [docs/11-architecture.md](docs/11-architecture.md).
 
+Then get hands-on with **[lab/](lab/README.md)**: seven drills, one component per sitting
+(OpenTofu state, Argo CD, projects and waves, OpenBao, secret delivery, environments, day 2). Each one has you
+predict, run, check, then break and fix, with answers recorded on a freshly reset stack.
+
 ```bash
 make stop       # pause and free Docker memory, keep everything
 make start      # resume
